@@ -1,6 +1,7 @@
 package com.driver.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -8,6 +9,10 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Entity
+@Table
+@Data
+
+@AllArgsConstructor
 public class Student {
 
     @Id
@@ -50,6 +55,15 @@ public class Student {
                 ", updatedOn=" + updatedOn +
                 '}';
     }
+
+    public Student(String emailId, String name, int age, String country) {
+        this.emailId = emailId;
+        this.name = name;
+        this.age = age;
+        this.country = country;
+    }
+
+
 
 
 }
