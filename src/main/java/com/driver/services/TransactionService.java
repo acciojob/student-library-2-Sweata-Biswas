@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class TransactionService {
@@ -77,12 +79,28 @@ public class TransactionService {
 
         List<Transaction> transactions = transactionRepository5.find(cardId, bookId, TransactionStatus.SUCCESSFUL, true);
         Transaction transaction = transactions.get(transactions.size() - 1);
-
         //for the given transaction calculate the fine amount considering the book has been returned exactly when this function is called
-        //make the book available for other users
+
+        Date issueDate = transaction.getTransactionDate();
+        long issueDateTimeDiff = Math.abs(System.currentTimeMillis()-issueDate.getTime());
+        long issueDateDaysDiff = TimeUnit.DAYS.convert(issueDateTimeDiff,TimeUnit.MILLISECONDS);
+        long totalFine = 0;
+        if(issueDateDaysDiff> getMax_allowed_days){
+            totalFine = (issueDateDaysDiff-getMax_allowed_days)* fine_per_day;
+        }
+
+       //make the book available for other users
+        transaction.getBook().setAvailable(true);
+        transaction.getBook().setCard(null);
         //make a new transaction for return book which contains the fine amount as well
 
-        Transaction returnBookTransaction  = null;
+        Transaction returnBookTransaction  = new Transaction();
+        returnBookTransaction.setBook(transaction.getBook());
+        returnBookTransaction.setCard(transaction.getCard());
+        returnBookTransaction.setFineAmount((int) totalFine);
+        returnBookTransaction.setIssueOperation(false);
+        returnBookTransaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
+         transactionRepository5.save(returnBookTransaction);
         return returnBookTransaction; //return the transaction after updating all details
     }
 }
