@@ -20,7 +20,7 @@ public class AuthorController {
     AuthorService authorService;
 
     @PostMapping("/")
-    public ResponseEntity<String> createAuthor(@RequestBody Author author){
+    public ResponseEntity<String> createAuthor(@RequestBody() Author author){
         authorService.create(author);
         return new ResponseEntity<>( "Success" , HttpStatus.CREATED);
     }
