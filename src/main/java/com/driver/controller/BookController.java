@@ -11,7 +11,7 @@ import java.util.List;
 
 //Add required annotations
 @RestController
-@RequestMapping("book")
+@RequestMapping("/book")
 public class BookController {
 
 
@@ -20,7 +20,7 @@ public class BookController {
     BookService bookService;
     //Add required annotations
     @PostMapping("/")
-    public ResponseEntity<String> createBook(Book book){
+    public ResponseEntity<String> createBook(@RequestBody() Book book){
         bookService.createBook(book);
         return  new ResponseEntity<>("Success",HttpStatus.CREATED);
     }
