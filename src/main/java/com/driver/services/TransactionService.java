@@ -46,13 +46,16 @@ public class TransactionService {
         // If it fails: throw new Exception("Book is either unavailable or not present");
        if(book == null || book.isAvailable() == false){
            transaction.setTransactionStatus(TransactionStatus.FAILED);
+           bookRepository5.updateBook(book);
            transactionRepository5.save(transaction);
+
             throw new Exception("Book is either unavailable or not present");
         }
         //2. card is present and activated
         // If it fails: throw new Exception("Card is invalid");
         if(card == null || card.getCardStatus().equals(CardStatus.DEACTIVATED)){
             transaction.setTransactionStatus(TransactionStatus.FAILED);
+            bookRepository5.updateBook(book);
             transactionRepository5.save(transaction);
             throw new Exception("Card is invalid");
         }
@@ -60,14 +63,17 @@ public class TransactionService {
         // If it fails: throw new Exception("Book limit has reached for this card");
         if(card.getBooks().size() >= max_allowed_books){
             transaction.setTransactionStatus(TransactionStatus.FAILED);
+            bookRepository5.updateBook(book);
             transactionRepository5.save(transaction);
             throw new Exception("Book limit has reached for this card");
         }
         //If the transaction is successful, save the transaction to the list of transactions and return the id
             book.setCard(card);
             card.getBooks().add(book);
-
-                bookRepository5.updateBook(book);
+        List<Book> bookList = card.getBooks();
+        bookList.add(book);
+        card.setBooks(bookList);
+        bookRepository5.updateBook(book);
         transaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
         transactionRepository5.save(transaction);
         //Note that the error message should match exactly in all cases
