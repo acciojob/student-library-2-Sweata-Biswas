@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -87,37 +89,49 @@ public class TransactionService {
         return transaction.getTransactionId();
 
         //Note that the error message should match exactly in all cases
+
     }
 
     public Transaction returnBook(int cardId, int bookId) throws Exception{
 
         List<Transaction> transactions = transactionRepository5.find(cardId, bookId, TransactionStatus.SUCCESSFUL, true);
         Transaction transaction = transactions.get(transactions.size() - 1);
+
         //for the given transaction calculate the fine amount considering the book has been returned exactly when this function is called
+        //make the book available for other users
+        //make a new transaction for return book which contains the fine amount as well
 
         Date issueDate = transaction.getTransactionDate();
-        long issueDateTimeDiff = Math.abs(System.currentTimeMillis()-issueDate.getTime());
-        long issueDateDaysDiff = TimeUnit.DAYS.convert(issueDateTimeDiff,TimeUnit.MILLISECONDS);
-        long totalFine = 0;
-        if(issueDateDaysDiff> getMax_allowed_days){
-            totalFine = (issueDateDaysDiff-getMax_allowed_days)* fine_per_day;
+
+        long timeIssuetime = Math.abs(System.currentTimeMillis() - issueDate.getTime());
+
+        long no_of_days_passed = TimeUnit.DAYS.convert(timeIssuetime, TimeUnit.MILLISECONDS);
+
+        int fine = 0;
+        if(no_of_days_passed > getMax_allowed_days)
+        {
+            fine = (int)((no_of_days_passed - getMax_allowed_days) * fine_per_day);
         }
-//update the book and its status
+
+
+        //update the book and its status
         Book book = transaction.getBook();
         book.setAvailable(true);
         book.setCard(null);
         bookRepository5.updateBook(book);
-       //make the book available for other users
 
-        //make a new transaction for return book which contains the fine amount as well
+        //Remove that book from that card list
 
-        Transaction returnBookTransaction  = new Transaction();
-        returnBookTransaction.setBook(transaction.getBook());
-        returnBookTransaction.setCard(transaction.getCard());
-        returnBookTransaction.setFineAmount((int) totalFine);
-        returnBookTransaction.setIssueOperation(false);
-        returnBookTransaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
-         transactionRepository5.save(returnBookTransaction);
-        return returnBookTransaction; //return the transaction after updating all details
+        Transaction tr = new Transaction();
+        tr.setBook(transaction.getBook());
+        tr.setCard(transaction.getCard());
+        tr.setIssueOperation(false);
+        tr.setFineAmount(fine);
+        tr.setTransactionStatus(TransactionStatus.SUCCESSFUL);
+
+        transactionRepository5.save(tr);
+
+        return tr;
+
     }
 }

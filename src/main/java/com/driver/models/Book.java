@@ -2,12 +2,11 @@ package com.driver.models;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Table
-
 public class Book {
 
     @Id
@@ -44,14 +43,8 @@ public class Book {
         this.name = name;
         this.genre = genre;
         this.author = author;
+        this.available = true;
     }
-
-//    public Book(String name, Genre genre, Author author, boolean available) {
-//        this.name = name;
-//        this.genre = genre;
-//        this.author = author;
-//        this.available = available;
-//    }
 
     public int getId() {
         return id;
@@ -109,4 +102,3 @@ public class Book {
         this.transactions = transactions;
     }
 }
-
