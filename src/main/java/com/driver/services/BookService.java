@@ -18,12 +18,12 @@ public class BookService {
     @Autowired
     AuthorRepository authorRepository;
     public void createBook(Book book){
-        int authorId = book.getAuthor().getId();
-        Author author = authorRepository.findById(authorId).get();
-        List<Book> bookList = author.getBooksWritten();
-        bookList.add(book);
-        book.setAuthor(author);
-        authorRepository.save(author);
+//        int authorId = book.getAuthor().getId();
+//        Author author = authorRepository.findById(authorId).get();
+//        List<Book> bookList = author.getBooksWritten();
+//        bookList.add(book);
+//        book.setAuthor(author);
+//        authorRepository.save(author);
         bookRepository2.save(book);
     }
 
