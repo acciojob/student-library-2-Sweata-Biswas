@@ -37,18 +37,21 @@ public class TransactionService {
         //check whether bookId and cardId already exist
         Book book = bookRepository5.findById(bookId).get();
         Card card = cardRepository5.findById(cardId).get();
+
         Transaction transaction = new Transaction();
+
         transaction.setBook(book);
         transaction.setCard(card);
         transaction.setIssueOperation(true);
+
+
         //conditions required for successful transaction of issue book:
         //1. book is present and available
         // If it fails: throw new Exception("Book is either unavailable or not present");
-       if(book == null || book.isAvailable() == false){
-           transaction.setTransactionStatus(TransactionStatus.FAILED);
-           bookRepository5.updateBook(book);
-           transactionRepository5.save(transaction);
-
+        if(book == null || !book.isAvailable()){
+            transaction.setTransactionStatus(TransactionStatus.FAILED);
+            bookRepository5.updateBook(book);
+            transactionRepository5.save(transaction);
             throw new Exception("Book is either unavailable or not present");
         }
         //2. card is present and activated
@@ -61,24 +64,29 @@ public class TransactionService {
         }
         //3. number of books issued against the card is strictly less than max_allowed_books
         // If it fails: throw new Exception("Book limit has reached for this card");
-        if(card.getBooks().size() >= max_allowed_books){
+        if(card.getBooks().size() >= max_allowed_books) {
             transaction.setTransactionStatus(TransactionStatus.FAILED);
             bookRepository5.updateBook(book);
             transactionRepository5.save(transaction);
             throw new Exception("Book limit has reached for this card");
         }
         //If the transaction is successful, save the transaction to the list of transactions and return the id
-            book.setCard(card);
-            card.getBooks().add(book);
+
+        book.setCard(card);
+        book.setAvailable(false);
         List<Book> bookList = card.getBooks();
         bookList.add(book);
         card.setBooks(bookList);
-        bookRepository5.updateBook(book);
-        transaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
-        transactionRepository5.save(transaction);
-        //Note that the error message should match exactly in all cases
 
-       return transaction.getTransactionId(); //return transactionId instead
+        bookRepository5.updateBook(book);
+
+        transaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
+
+        transactionRepository5.save(transaction);
+
+        return transaction.getTransactionId();
+
+        //Note that the error message should match exactly in all cases
     }
 
     public Transaction returnBook(int cardId, int bookId) throws Exception{
@@ -94,10 +102,13 @@ public class TransactionService {
         if(issueDateDaysDiff> getMax_allowed_days){
             totalFine = (issueDateDaysDiff-getMax_allowed_days)* fine_per_day;
         }
-
+//update the book and its status
+        Book book = transaction.getBook();
+        book.setAvailable(true);
+        book.setCard(null);
+        bookRepository5.updateBook(book);
        //make the book available for other users
-        transaction.getBook().setAvailable(true);
-        transaction.getBook().setCard(null);
+
         //make a new transaction for return book which contains the fine amount as well
 
         Transaction returnBookTransaction  = new Transaction();
